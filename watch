@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -eu
+
+URL="" ### ここにWebhook URLを記述！ ###
+USERNAME="あおい姐さん"
+
+PID=$1
+if [ ! $PID ]; then
+  echo "ERROR: PID required." >&2
+  exit 1
+fi
+
+# 実行開始時のプロセス
+START_MSG="`ps ho args $PID`"
+ret=$?
+if [ $ret -ne 0 ]; then
+  echo "ERROR: Process not found." >&2
+  exit 1
+else
+  ary=(`echo $START_MSG`)
+  for i in `seq 1 ${#ary[@]}`
+  do
+  set +u
+    if [ "$i" -eq 1 ]
+    then
+        PRETXT="${ary[$i-1]##*/} を実行したよ"
+    else
+        TEXT="$TEXT ${ary[$i-1]}"
+    fi
+  done
+fi
+set -u
+
+TITLE="実行コマンド"
+TEXT="\`\$ ${ary[0]##*/}$TEXT\`"
+BEGIN_DATA="payload={\"username\": \"$USERNAME\", \"text\": \"追跡開始！ (PID： \`$PID\` )\", \"attachments\": [{\"fallback\": \"実行コマンド確認\",\"color\": \"#003399\",\"pretext\": \"$PRETXT\" ,\"title\": \"$TITLE\",\"text\": \"$TEXT\"}]}"
+
+curl -s -X POST --data-urlencode "$BEGIN_DATA" ${URL} >/dev/null
+
+
+# プロセスの終了時
+END_MSG="${ary[0]##*/} が終了したよ\n追跡終了！ (PID： \`$PID\` )"
+: "start watch ${PID}"
+{
+  while true
+  do
+    if ! ps -p ${PID} >/dev/null ;then
+      curl -s -X POST --data-urlencode "payload={\"username\": \"$USERNAME\", \"text\": \"${END_MSG}\"}" ${URL} >/dev/null
+      exit
+    fi
+    sleep 1m
+  done
+} &
