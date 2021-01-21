@@ -13,9 +13,9 @@ $ git clone git@github.com:junprog/slack.git
 
 PATHを通す。
 ```shell
-$ echo export "PATH=$HOME/Documents/slack:$PATH" >> ~/.bash_profile
+$ echo 'export "PATH=$HOME/Documents/slack:$PATH"' >> ~/.bash_profile
 $ source ~/.bash_profile
-$ echo alias aoi='bash watch' >> ~/.bash_aliases
+$ echo "alias aoi='bash watch'" >> ~/.bash_aliases
 $ source  ~/.bash_aliases
 ```
 
